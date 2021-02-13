@@ -10,7 +10,6 @@ import me.kingtux.mavenlibrary.releases.ArtifactFile;
 import me.kingtux.mavenlibrary.releases.ArtifactRelease;
 
 import java.io.*;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -37,40 +36,41 @@ public class DependManager {
     }
 
     public Future<Report> downloadDependenciesAsync(Report report) {
-       return executor.submit(() -> {
-           ArtifactResolver resolver = new ArtifactResolver(report.getRepositoryList());
-           //TODO add the machines local .m2 folder
-           for (JDMArtifact jdmArtifact : report.getArtifactList()) {
-               File archiveFile = generateLibPath(jdmArtifact);
-               if (!archiveFile.exists()) {
-                   ArtifactRelease artifactRelease = jdmArtifact.toMavenLibraryArtifact().resolveRelease(resolver);
-                   ArtifactFile jar = artifactRelease.getArtifactFile("jar");
-                   try {
-                       jar.download(archiveFile);
-                   } catch (IOException e) {
-                       //TODO Catch for now later make the dev handle the errors
-                       e.printStackTrace();
-                   }
-               }
-               try {
-                   classPathController.addToClassPath(archiveFile);
-               } catch (ClassPathController.ClassPathControllerException e) {
-                   //TODO Catch for now later make the dev handle the errors
-                   e.printStackTrace();
-               }
-           }
-           return report;
-       });
+        return executor.submit(() -> {
+            ArtifactResolver resolver = new ArtifactResolver(report.getRepositoryList());
+            //TODO add the machines local .m2 folder
+            for (JDMArtifact jdmArtifact : report.getArtifactList()) {
+                File archiveFile = generateLibPath(jdmArtifact);
+                if (!archiveFile.exists()) {
+                    ArtifactRelease artifactRelease = jdmArtifact.toMavenLibraryArtifact().resolveRelease(resolver);
+                    ArtifactFile jar = artifactRelease.getArtifactFile("jar");
+                    try {
+                        jar.download(archiveFile);
+                    } catch (IOException e) {
+                        //TODO Catch for now later make the dev handle the errors
+                        e.printStackTrace();
+                        continue;
+                    }
+                }
+                try {
+                    classPathController.addToClassPath(archiveFile);
+                } catch (ClassPathController.ClassPathControllerException e) {
+                    //TODO Catch for now later make the dev handle the errors
+                    e.printStackTrace();
+                }
+            }
+            return report;
+        });
 
 
     }
 
     private File generateLibPath(JDMArtifact jdmArtifact) {
-        String folderPath = jdmArtifact.getGroupID() + File.separator + jdmArtifact.getArtifactID() + File.separator;
+        String folderPath = jdmArtifact.getGroupID().replace(".", File.separator) + File.separator + jdmArtifact.getArtifactID() + File.separator;
         File file = new File(dependsFolder, folderPath);
         if (!file.exists()) file.mkdirs();
-        String fileName = jdmArtifact.getArtifactID() + "-" + jdmArtifact.getVersion() + ".jar";
-        return new File(folderPath, fileName);
+        String fileName = jdmArtifact.getVersion() + ".jar";
+        return new File(file, fileName);
     }
 
     public Future<Report> downloadDependenciesAsync(InputStream inputStream) {

@@ -3,9 +3,7 @@ package me.kingtux.jdm.gradle;
 import me.kingtux.jdm.gradle.tasks.GenDependenciesTask;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.jvm.tasks.Jar;
 
 public class JDMPlugin implements Plugin<Project> {
     public static Configuration createJDMConfig(Project project) {
@@ -21,12 +19,11 @@ public class JDMPlugin implements Plugin<Project> {
 
     public static Configuration addJDMDepends(Project project) {
         Configuration jdmInternal = project.getConfigurations().create("JDMInternal");
-        project.getRepositories().maven(mavenArtifactRepository -> {
-            mavenArtifactRepository.setUrl("https://repo.potatocorp.dev/storages/maven/kingtux-repo");
-            mavenArtifactRepository.setName("kingtux-repo");
-        });
-        project.getDependencies().add(jdmInternal.getName(), "me.kingtux:jdm-lib:1.0.0-SNAPSHOT");
-        project.getDependencies().add(jdmInternal.getName(), "me.kingtux:jdm-common:1.0.0-SNAPSHOT");
+        Configuration implementation =project.getConfigurations().getByName("implementation");
+
+        implementation.extendsFrom(jdmInternal);
+
+
         return jdmInternal;
     }
 
