@@ -1,0 +1,1 @@
+# JDM - Limit file shading in your Java projects
