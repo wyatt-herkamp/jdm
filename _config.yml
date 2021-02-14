@@ -1,0 +1,6 @@
+remote_theme: pmarsceill/just-the-docs
+title: JDM
+description: JDM docs
+url: "https://kingtux.dev"
+baseurl: "/jdm/"
+
